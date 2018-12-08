@@ -20,7 +20,6 @@ parser.add_argument("--testR_img_path", type=str, default="/home/disk3/zhousiyu/
 parser.add_argument("--testZ_img_path", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/zeroshot/testZS.txt")
 parser.add_argument("--test_cls_path", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/zeroshot/test_classes.txt")
 parser.add_argument("--finetune", type=bool, default=False)
-parser.add_argument("--mse", type=bool, default=False)
 parser.add_argument("--train_class_num", type=int, default=150)
 parser.add_argument("--test_class_num", type=int, default=50)
 parser.add_argument("--img_size", type=int, default=224)
@@ -72,10 +71,7 @@ test_att_dict = att_dict[test_cls_dict, :]
 train_att_dict = torch.Tensor(train_att_dict).cuda()
 test_att_dict = torch.Tensor(test_att_dict).cuda()
 
-if args.mse:
-    criterion = nn.MSELoss()
-else:
-    criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss()
 
 if args.finetune:
     optimizer = optim.Adam([
@@ -100,10 +96,8 @@ for epoch in range(1000):
 
       for i, data in enumerate(trainloader, 0):
           img, label = data
-          att = train_att_dict[label]
           img = img.cuda()
           label = label.cuda()
-          att = att.cuda()
 
           optimizer.zero_grad()
 
@@ -111,10 +105,7 @@ for epoch in range(1000):
           fake_att = mp_net(feature)
 
           similarity = torch.mm(fake_att, train_att_dict.t())
-          if args.mse:
-              loss = criterion(fake_att, att)
-          else:
-              loss = criterion(similarity, label)
+          loss = criterion(similarity, label)
 
           loss.backward()
           optimizer.step()
