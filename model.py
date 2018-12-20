@@ -5,7 +5,7 @@ from torchvision import models
 class Backbone(nn.Module):
     def __init__(self):
         super(Backbone, self).__init__()
-        self.VGG = models.vgg19(pretrained=True)
+        self.VGG = models.vgg19_bn(pretrained=True)
 
     def forward(self, x):
         x = self.VGG.features(x)
@@ -22,10 +22,10 @@ class Mapping(nn.Module):
     def __init__(self, att_size):
         super(Mapping, self).__init__()
         self.mapping = torch.nn.Sequential(
-            torch.nn.Linear(4096, 1024),
-            torch.nn.ReLU(),
+            torch.nn.Linear(4096, att_size, bias=False),
+            #torch.nn.ReLU(),
             #torch.nn.Dropout(0)
-            torch.nn.Linear(1024, att_size),
+            #torch.nn.Linear(1024, att_size),
             #torch.nn.Sigmoid()
         )
 

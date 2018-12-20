@@ -7,24 +7,25 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import argparse
+from tensorboardX import SummaryWriter
 
 from utils import *
 
 # h-parameter
 parser = argparse.ArgumentParser()
-parser.add_argument("--img_folder", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/images")
-parser.add_argument("--att_path", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/attributes/class_attribute_labels_continuous.txt")
-parser.add_argument("--train_img_path", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/zeroshot/train.txt")
-parser.add_argument("--train_cls_path", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/zeroshot/train_classes.txt")
-parser.add_argument("--testR_img_path", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/zeroshot/testRecg.txt")
-parser.add_argument("--testZ_img_path", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/zeroshot/testZS.txt")
-parser.add_argument("--test_cls_path", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/zeroshot/test_classes.txt")
+parser.add_argument("--img_folder", type=str, default="/data2/zhousiyu/dataset/CUB_200_2011/images")
+parser.add_argument("--att_path", type=str, default="/data2/zhousiyu/dataset/CUB_200_2011/attributes/class_attribute_labels_continuous.txt")
+parser.add_argument("--train_img_path", type=str, default="/data2/zhousiyu/dataset/CUB_200_2011/zeroshot/train.txt")
+parser.add_argument("--train_cls_path", type=str, default="/data2/zhousiyu/dataset/CUB_200_2011/zeroshot/train_classes.txt")
+parser.add_argument("--testR_img_path", type=str, default="/data2/zhousiyu/dataset/CUB_200_2011/zeroshot/testRecg.txt")
+parser.add_argument("--testZ_img_path", type=str, default="/data2/zhousiyu/dataset/CUB_200_2011/zeroshot/testZS.txt")
+parser.add_argument("--test_cls_path", type=str, default="/data2/zhousiyu/dataset/CUB_200_2011/zeroshot/test_classes.txt")
 parser.add_argument("--finetune", type=bool, default=False)
 parser.add_argument("--train_class_num", type=int, default=150)
 parser.add_argument("--test_class_num", type=int, default=50)
 parser.add_argument("--img_size", type=int, default=224)
 parser.add_argument("--att_size", type=int, default=312)
-parser.add_argument("--batch_size", type=int, default=64)
+parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--weight_decay", type=float, default=0.01)
 parser.add_argument("--m_lr", type=float, default=0.001)
 parser.add_argument("--b_lr", type=float, default=0.00001)
@@ -92,6 +93,7 @@ bk_net = bk_net.cuda()
 mp_net = mp_net.cuda()
 
 # main step
+writer = SummaryWriter()
 for epoch in range(1000):
 
       # train step
@@ -157,3 +159,7 @@ for epoch in range(1000):
       
       # print accurancy
       print(epoch, train_ac, testR_ac, testZ_ac)
+      writer.add_scalar("train_ac", train_ac, epoch)
+      writer.add_scalar("testR_ac", testR_ac, epoch)
+      writer.add_scalar("testZ_ac", testZ_ac, epoch)
+writer.close()
