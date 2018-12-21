@@ -25,8 +25,8 @@ parser.add_argument("--train_class_num", type=int, default=150)
 parser.add_argument("--test_class_num", type=int, default=50)
 parser.add_argument("--img_size", type=int, default=224)
 parser.add_argument("--att_size", type=int, default=312)
-parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--weight_decay", type=float, default=0.01)
+parser.add_argument("--batch_size", type=int, default=64)
+parser.add_argument("--weight_decay", type=float, default=0.001)
 parser.add_argument("--m_lr", type=float, default=0.001)
 parser.add_argument("--b_lr", type=float, default=0.00001)
 args = parser.parse_args()
@@ -35,7 +35,7 @@ args = parser.parse_args()
 data_transforms = transforms.Compose([
             transforms.CenterCrop(args.img_size),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
             ])
 
 # load data
@@ -127,9 +127,10 @@ for epoch in range(1000):
       train_ac = train_ac / len(trainloader.dataset)
        
       # testR step
-      testR_ac = 0
       bk_net.eval()
       mp_net.eval()
+      predict_list = []
+      label_list = []
       for i, data in enumerate(testRloader, 0):
           img, label = data
           img = img.cuda()
@@ -139,11 +140,15 @@ for epoch in range(1000):
           fake_att = mp_net(feature)
           similarity = torch.mm(fake_att, train_att_dict.t())
           predict = torch.argmax(similarity, 1)
-          testR_ac += (predict == label).sum().item()
-      testR_ac = testR_ac / len(testRloader.dataset)
+          predict_list.append(predict.view(-1).item())
+          label_list.append(label.view(-1).item())
+      predict_list = np.array(predict_list)
+      label_list = np.array(label_list)
+      testR_ac = np.array([(predict_list[label_list == l] == l).mean() for l in range(args.train_class_num)]).mean()
      
       # testZ step
-      testZ_ac = 0
+      predict_list = []
+      label_list = []
       for i, data in enumerate(testZloader, 0):
           img, label = data
           img = img.cuda()
@@ -154,9 +159,11 @@ for epoch in range(1000):
  
           similarity = torch.mm(fake_att, test_att_dict.t())
           predict = torch.argmax(similarity, 1)
-          testZ_ac += (predict == label).sum().item()
-      testZ_ac = testZ_ac / len(testZloader.dataset)
-      
+          predict_list.append(predict.view(-1).item())
+          label_list.append(label.view(-1).item())
+      predict_list = np.array(predict_list)
+      label_list = np.array(label_list)
+      testZ_ac = np.array([(predict_list[label_list == l] == l).mean() for l in range(args.test_class_num)]).mean()
       # print accurancy
       print(epoch, train_ac, testR_ac, testZ_ac)
       writer.add_scalar("train_ac", train_ac, epoch)

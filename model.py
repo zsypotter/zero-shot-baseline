@@ -23,10 +23,6 @@ class Mapping(nn.Module):
         super(Mapping, self).__init__()
         self.mapping = torch.nn.Sequential(
             torch.nn.Linear(4096, att_size, bias=False),
-            #torch.nn.ReLU(),
-            #torch.nn.Dropout(0)
-            #torch.nn.Linear(1024, att_size),
-            #torch.nn.Sigmoid()
         )
 
     def forward(self, x):
