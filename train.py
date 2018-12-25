@@ -26,9 +26,10 @@ parser.add_argument("--test_class_num", type=int, default=50)
 parser.add_argument("--img_size", type=int, default=224)
 parser.add_argument("--att_size", type=int, default=312)
 parser.add_argument("--batch_size", type=int, default=64)
-parser.add_argument("--weight_decay", type=float, default=0.001)
+parser.add_argument("--weight_decay", type=float, default=0.0005)
 parser.add_argument("--m_lr", type=float, default=0.001)
-parser.add_argument("--b_lr", type=float, default=0.00001)
+parser.add_argument("--b_lr", type=float, default=0.0001)
+parser.add_argument("--modify_att", type=bool, default=True)
 args = parser.parse_args()
 
 # img-preprocess
@@ -55,13 +56,15 @@ lines = test_cls_file.readlines()
 test_cls_dict = [(int(line.split(' ')[0]) - 1) for line in lines]
 
 att_dict = np.loadtxt(args.att_path)
-if att_dict.max() > 1.:
-    att_dict /= 100.
-att_mean = att_dict[train_cls_dict, :].mean(axis=0)
-for i in range(args.att_size):
-    att_dict[att_dict[:, i] < 0, i] = att_mean[i]
-for i in range(args.att_size):
-    att_dict[:, i] = att_dict[:, i] - att_mean[i] + 0.5
+
+if args.modify_att:
+    if att_dict.max() > 1.:
+        att_dict /= 100.
+    att_mean = att_dict[train_cls_dict, :].mean(axis=0)
+    for i in range(args.att_size):
+        att_dict[att_dict[:, i] < 0, i] = att_mean[i]
+    for i in range(args.att_size):
+        att_dict[:, i] = att_dict[:, i] - att_mean[i] + 0.5
 
 train_att_dict = att_dict[train_cls_dict, :]
 test_att_dict = att_dict[test_cls_dict, :]
