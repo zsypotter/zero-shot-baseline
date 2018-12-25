@@ -5,7 +5,7 @@ from torchvision import models
 class Backbone(nn.Module):
     def __init__(self):
         super(Backbone, self).__init__()
-        self.VGG = models.vgg19_bn(pretrained=True)
+        self.VGG = models.vgg19(pretrained=True)
 
     def forward(self, x):
         x = self.VGG.features(x)
