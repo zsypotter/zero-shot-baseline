@@ -14,11 +14,12 @@ from utils import *
 
 # h-parameter
 parser = argparse.ArgumentParser()
-parser.add_argument("--img_folder", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/images")
-parser.add_argument("--dataset_root", type=str, default="/home/disk3/zhousiyu/dataset/CUB_200_2011/zeroshot")
+parser.add_argument("--img_folder", type=str, default="/data2/zhousiyu/dataset/CUB_200_2011/images")
+parser.add_argument("--dataset_root", type=str, default="/data2/zhousiyu/dataset/CUB_200_2011/zeroshot")
 parser.add_argument("--finetune", type=bool, default=False)
 parser.add_argument("--img_size", type=int, default=224)
 parser.add_argument("--batch_size", type=int, default=64)
+parser.add_argument("--epoch_num", type=int, default=1000)
 parser.add_argument("--weight_decay", type=float, default=0.0005)
 parser.add_argument("--m_lr", type=float, default=0.001)
 parser.add_argument("--b_lr", type=float, default=0.0001)
@@ -127,7 +128,9 @@ for epoch in range(1000):
         loss.backward()
         optimizer.step()
         if i % 10 == 0:
-            print(epoch, i, loss.item())
+            print('[%d/%d][%d/%d]\tsoftmax_loss: %.4f'
+                  % (epoch, args.epoch_num, i, len(trainloader),
+                     loss))
 
         predict = torch.argmax(similarity, 1)
         train_ac += (predict == label).sum().item()
@@ -173,7 +176,8 @@ for epoch in range(1000):
     testZ_ac = np.array([(predict_list[label_list == l] == l).mean() for l in range(test_class_num)]).mean()
 
     # print accurancy
-    print(epoch, train_ac, testR_ac, testZ_ac)
+    print('train_acc: %.4f\ttestR_mac: %.4f\ttestZ_mac: %.4f'
+                  % (train_ac, testR_ac, testZ_ac))
     writer.add_scalar("train_ac", train_ac, epoch)
     writer.add_scalar("testR_ac", testR_ac, epoch)
     writer.add_scalar("testZ_ac", testZ_ac, epoch)
